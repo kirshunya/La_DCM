@@ -55,12 +55,28 @@ void printBatteryRuntime(std::chrono::steady_clock::time_point start) {
               << seconds << " seconds" << std::endl;
 }
 
+void printRemainingBatteryLife() {
+    SYSTEM_POWER_STATUS sps;
+    GetSystemPowerStatus(&sps);
+
+    if (sps.ACLineStatus == 0 && sps.BatteryLifeTime != -1) {
+        int hours = sps.BatteryLifeTime / 3600;
+        int minutes = (sps.BatteryLifeTime % 3600) / 60;
+        int seconds = sps.BatteryLifeTime % 60;
+        std::cout << "Remaining battery runtime after unplugging: ";
+        std::cout << hours << " hours " << minutes << " minutes " << seconds << " seconds" << std::endl;
+    } else {
+        std::cout << "Computer is connected to AC power or time is not available." << std::endl;
+    }
+}
+
 int main() {
     std::chrono::steady_clock::time_point unpluggedTime;
     bool isUnplugged = false;
 
     while (true) {
         system("cls");
+        std::cout << "-----------------" << std::endl;
         printPowerInfo();
 
         SYSTEM_POWER_STATUS sps;
@@ -68,11 +84,11 @@ int main() {
 
         if (sps.ACLineStatus == 0) {
             if (!isUnplugged) {
-                // Запоминаем время отключения от зарядки
                 unpluggedTime = std::chrono::steady_clock::now();
                 isUnplugged = true;
             }
             printBatteryRuntime(unpluggedTime);
+            printRemainingBatteryLife();
         } else {
             isUnplugged = false;
             std::cout << "Connected to AC power." << std::endl;
@@ -101,8 +117,7 @@ int main() {
         //         std::cin.get();
         // }
 
-        // Добавляем небольшую задержку
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     return 0;
