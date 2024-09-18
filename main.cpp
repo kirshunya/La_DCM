@@ -19,6 +19,7 @@ void printPowerInfo() {
     std::cout << std::endl;
 
     std::cout << "Battery type: ";
+    std::cout << "BatteryFlag: " << (sps.BatteryFlag & 0xF) << std::endl;
     switch (sps.BatteryFlag & 0xF) {
         case 0x1: std::cout << "Lithium-ion"; break;
         case 0x2: std::cout << "Nickel-metal hydride"; break;
@@ -34,11 +35,11 @@ void printPowerInfo() {
 }
 
 void goToSleep() {
-    SetSuspendState(FALSE, TRUE, FALSE);
+    SetSuspendState(FALSE, TRUE, TRUE);
 }
 
 void goToHibernate() {
-    SetSuspendState(TRUE, TRUE, FALSE);
+    SetSuspendState(TRUE, TRUE, TRUE);
 }
 
 void printBatteryRuntime(std::chrono::steady_clock::time_point start) {
@@ -77,7 +78,7 @@ int main() {
     while (true) {
         system("cls");
         std::cout << "-----------------" << std::endl;
-        printPowerInfo();
+        //printPowerInfo();
 
         SYSTEM_POWER_STATUS sps;
         GetSystemPowerStatus(&sps);
@@ -87,35 +88,41 @@ int main() {
                 unpluggedTime = std::chrono::steady_clock::now();
                 isUnplugged = true;
             }
-            printBatteryRuntime(unpluggedTime);
-            printRemainingBatteryLife();
+            //printBatteryRuntime(unpluggedTime);
+            //printRemainingBatteryLife();
         } else {
             isUnplugged = false;
             std::cout << "Connected to AC power." << std::endl;
         }
 
-        // std::cout << "\nChoose an action:" << std::endl;
-        // std::cout << "1. Go to sleep mode" << std::endl;
-        // std::cout << "2. Go to hibernate mode" << std::endl;
-        // std::cout << "3. Exit the program" << std::endl;
-        //
-        // int choice;
-        // std::cin >> choice;
-        //
-        // switch (choice) {
-        //     case 1:
-        //         goToSleep();
-        //         break;
-        //     case 2:
-        //         goToHibernate();
-        //         break;
-        //     case 3:
-        //         return 0;
-        //     default:
-        //         std::cout << "Invalid choice. Press Enter to continue.";
-        //         std::cin.ignore();
-        //         std::cin.get();
-        // }
+        std::cout << "\nChoose an action:" << std::endl;
+        std::cout << "1. Go to sleep mode" << std::endl;
+        std::cout << "2. Go to hibernate mode" << std::endl;
+        std::cout << "3. Exit the program" << std::endl;
+        std::cout << "4. Print" << std::endl;
+
+        int choice;
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1:
+                goToSleep();
+                break;
+            case 2:
+                goToHibernate();
+                break;
+            case 3:
+                return 0;
+            case 4:
+                printPowerInfo();
+                printBatteryRuntime(unpluggedTime);
+                printRemainingBatteryLife();
+                break;
+            default:
+                std::cout << "Invalid choice. Press Enter to continue.";
+                std::cin.ignore();
+                std::cin.get();
+        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
